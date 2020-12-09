@@ -46,7 +46,7 @@ void GameTable::GiveCards(int number)
 
 int GameTable::Play(int playerIndex)
 {
-	if (_players[0]->GetDeckSize() == 0)
+	if (_players[0]->GetDeck()->GetDeckSize() == 0)
 	{
 		throw std::logic_error("Players don't have cards");
 	}

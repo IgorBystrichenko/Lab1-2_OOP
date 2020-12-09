@@ -1,5 +1,5 @@
 #include "ConsoleInteractor.h"
-#include <vld.h>
+//#include <vld.h>
 
 int main()
 {

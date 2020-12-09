@@ -3,9 +3,9 @@
 Card SmallestCardPlayer::TakeGameCard()
 {
 	int index = 0;
-	for (int i = 1; i < _deckSize; i++)
+	for (int i = 1; i < _deck->GetDeckSize(); i++)
 	{
-		if (_cards[i].GetRank() < _cards[index].GetRank())
+		if (_deck->GetCard(i).GetRank() < _deck->GetCard(index).GetRank())
 		{
 			index = i;
 		}
@@ -16,9 +16,9 @@ Card SmallestCardPlayer::TakeGameCard()
 Card SmallestCardPlayer::TakeGameCardBySuit(int suit)
 {
 	int index = -1;
-	for (int i = 0; i < _deckSize; i++)
+	for (int i = 0; i < _deck->GetDeckSize(); i++)
 	{
-		if (_cards[i].GetSuit() == suit && (index == -1 || _cards[i].GetRank() < _cards[index].GetRank()))
+		if (_deck->GetCard(i).GetSuit() == suit && (index == -1 || _deck->GetCard(i).GetRank() < _deck->GetCard(index).GetRank()))
 		{
 			index = i;
 		}

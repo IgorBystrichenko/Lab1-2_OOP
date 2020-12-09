@@ -3,15 +3,16 @@
 
 Card RandomCardPlayer::TakeGameCard()
 {
-	return TakeCard(RandomGenerator::GenerareRandomInt(0, _deckSize));
+	return TakeCard(RandomGenerator::GenerareRandomInt(0, _deck->GetDeckSize()));
 }
 
 Card RandomCardPlayer::TakeGameCardBySuit(int suit)
 {
 	int count = 0;
-	for (int i = 0; i < _deckSize; i++)
+	for (int i = 0; i < _deck->GetDeckSize(); i++)
 	{
-		if (_cards[i].GetSuit() == suit)
+		
+		if (_deck->GetCard(i).GetSuit() == suit)
 		{
 			count++;
 		}
@@ -25,9 +26,9 @@ Card RandomCardPlayer::TakeGameCardBySuit(int suit)
 	{
 		int rand = RandomGenerator::GenerareRandomInt(1, count);
 		int index = -1;
-		for (int i = 0; i < _deckSize && rand > 0; i++)
+		for (int i = 0; i < _deck->GetDeckSize() && rand > 0; i++)
 		{
-			if (_cards[i].GetSuit() == suit)
+			if (_deck->GetCard(i).GetSuit() == suit)
 			{
 				rand--;
 				if (rand == 0)

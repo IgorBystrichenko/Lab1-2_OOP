@@ -6,6 +6,8 @@
 #include "DeckLoader.h"
 #include "RandomCardPlayer.h"
 #include "SmallestCardPlayer.h"
+#include "PlayerFactory.h"
+
 
 void ConsoleInteractor::Start()
 {
@@ -93,6 +95,7 @@ Deck* ConsoleInteractor::DeckParser()
 
 Player** ConsoleInteractor::PlayersParser(int numberOfPlayers)
 {
+	
 	Player** players = new Player * [numberOfPlayers];
 	std::cout << "\nEnter players \"Name type\"" << std::endl;
 	std::cout << "The type of player determines his way of choosing the card to play\n"
@@ -112,14 +115,7 @@ Player** ConsoleInteractor::PlayersParser(int numberOfPlayers)
 		{
 			name = ReadValue<std::string>(std::cin);
 			type = ReadValue<char>(std::cin);
-
-			switch (type)
-			{
-			case 'r': players[i] = new RandomCardPlayer(name); break;
-			case 'b': players[i] = new BiggestCardPlayer(name); break;
-			case 's': players[i] = new SmallestCardPlayer(name); break;
-			default: throw std::logic_error("Invalid input. Try again!\nFormat: \"Name type\"");
-			}
+			players[i] = PlayerFactory::getPlayer(name, type);
 			i++;
 		}
 		catch (std::exception err)
@@ -154,9 +150,9 @@ void ConsoleInteractor::PrintAllPlayerCards(const GameTable& gameTable)
 	for(int i = 0; i < gameTable.GetNumberOfPlayers(); i++)
 	{
 		std::cout << gameTable.GetPlayer(i)->GetName() << ":" << std::endl;
-		for(int j = 0; j < gameTable.GetPlayer(i)->GetDeckSize(); j++)
+		for(int j = 0; j < gameTable.GetPlayer(i)->GetDeck()->GetDeckSize(); j++)
 		{
-			PrintCard(gameTable.GetPlayer(i)->GetCard(j));
+			PrintCard(gameTable.GetPlayer(i)->GetDeck()->GetCard(j));
 		}
 	}
 }
@@ -192,7 +188,7 @@ void ConsoleInteractor::Play(GameTable& gameTable, int playerIndex)
 	do
 	{
 		std::cout << gameTable.GetPlayer(i)->GetName() << ": ";
-		PrintCard(gameTable.GetPlayer(i)->GetLastTakedCard());
+		PrintCard(gameTable.GetPlayer(i)->GetDeck()->GetLastTakedCard());
 		i = (i + 1) % gameTable.GetNumberOfPlayers();
 	}
 	while (i != playerIndex);
