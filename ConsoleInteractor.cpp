@@ -171,7 +171,7 @@ void ConsoleInteractor::PrintCard(const Card& card)
 
 void ConsoleInteractor::PrintAllPlayerCards(const GameTable& gameTable)
 {
-	std::map<int, Player*> map = gameTable.GetPlayersData()->PlayerMapById();
+	std::map<int, Player*>& map = gameTable.GetPlayersData()->PlayerMapById();
 	for(auto i = map.begin(); i != map.end(); i++)
 	{
 		std::cout << i->second->GetName() << ":" << std::endl;
@@ -184,7 +184,7 @@ void ConsoleInteractor::PrintAllPlayerCards(const GameTable& gameTable)
 
 void ConsoleInteractor::PrintRating(const GameTable& gameTable)
 {
-	std::map<int, std::set<int>> wmap = gameTable.GetPlayersData()->PlayerMapByWinnings();
+	std::map<int, std::set<int>>& wmap = gameTable.GetPlayersData()->PlayerMapByWinnings();
 	for (auto i = wmap.rbegin(); i != wmap.rend(); i++)
 	{
 		std::set<int> list = i->second;

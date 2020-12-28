@@ -66,9 +66,9 @@ int GameTable::DoPlay(int firstPlayerID)
 {
 	Card biggestCard = _data->GetPlayerById(firstPlayerID)->TakeGameCard();
 	char suit = biggestCard.GetSuit();
-	std::map<int, Player*> map = _data->PlayerMapById();
+	std::map<int, Player*>& map = _data->PlayerMapById();
 	
-	std::map<int, Player*>::iterator winner = map.begin();
+	std::map<int, Player*>::iterator winner = map.find(firstPlayerID);
 
 	for (auto i = map.begin(); i != map.end(); i++)
 	{
@@ -77,6 +77,8 @@ int GameTable::DoPlay(int firstPlayerID)
 			continue;
 		}
 		Card playerCard = i->second->TakeGameCardBySuit(suit);
+		std::cout << "%" << playerCard.GetRank() << " " << biggestCard.GetRank() << " " << (playerCard.GetSuit() == suit) << "$";
+		if (playerCard.GetSuit() == suit) std::cout << CompareCards(playerCard, biggestCard) << "\n";
 		if (playerCard.GetSuit() == suit && CompareCards(playerCard, biggestCard) > 0)
 		{
 			biggestCard = playerCard;
@@ -84,8 +86,9 @@ int GameTable::DoPlay(int firstPlayerID)
 		}
 	}
 	
-	_data->PlayerMapByWinnings()[(*winner).second->GetWinnings()].erase(winner->first);
+	std::map<int, std::set<int>>& wmap = _data->PlayerMapByWinnings();
+	wmap[(*winner).second->GetWinnings()].erase(winner->first);
 	winner->second->IncWinnings();
-	_data->PlayerMapByWinnings()[(*winner).second->GetWinnings()].insert(winner->first);
+	wmap[(*winner).second->GetWinnings()].insert(winner->first);
 	return (*winner).first;
 }
