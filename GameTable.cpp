@@ -28,7 +28,7 @@ int GameTable::CompareCards(const Card& card1, const Card& card2)
 	}
 	else
 	{
-		throw std::logic_error("Ñomparison of cards of different suits");
+		throw std::logic_error("Сomparison of cards of different suits");
 	}
 }
 
@@ -85,8 +85,8 @@ int GameTable::DoPlay(int firstPlayerID)
 	}
 	
 	std::map<int, std::set<int>>& wmap = _data->PlayerMapByWinnings();
-	wmap[(*winner).second->GetWinnings()].erase(winner->first);
+	wmap[winner->second->GetWinnings()].erase(winner->first);
 	winner->second->IncWinnings();
-	wmap[(*winner).second->GetWinnings()].insert(winner->first);
-	return (*winner).first;
+	wmap[winner->second->GetWinnings()].insert(winner->first);
+	return winner->first;
 }
