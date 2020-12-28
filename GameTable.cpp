@@ -28,7 +28,7 @@ int GameTable::CompareCards(const Card& card1, const Card& card2)
 	}
 	else
 	{
-		throw std::logic_error("Ñomparison of cards of different suits");
+		throw std::logic_error("Ã‘omparison of cards of different suits");
 	}
 }
 
@@ -77,8 +77,6 @@ int GameTable::DoPlay(int firstPlayerID)
 			continue;
 		}
 		Card playerCard = i->second->TakeGameCardBySuit(suit);
-		std::cout << "%" << playerCard.GetRank() << " " << biggestCard.GetRank() << " " << (playerCard.GetSuit() == suit) << "$";
-		if (playerCard.GetSuit() == suit) std::cout << CompareCards(playerCard, biggestCard) << "\n";
 		if (playerCard.GetSuit() == suit && CompareCards(playerCard, biggestCard) > 0)
 		{
 			biggestCard = playerCard;
