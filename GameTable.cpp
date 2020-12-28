@@ -38,19 +38,18 @@ void GameTable::GiveCards(int number)
 	{
 		throw std::exception("Wrong number of cards!");
 	}
-	std::map<int, Player*>* map = _data->PlayerMapById();
-	for (auto i = map->begin(); i != map->end(); i++)
+	std::map<int, Player*> map = _data->PlayerMapById();
+	for (auto i = map.begin(); i != map.end(); i++)
 	{
 		for (int j = 0; j < number; j++)
 		{
-			(*i).second->AddCard(_deck->TakeCard(0));
+			i->second->AddCard(_deck->TakeCard(0));
 		}
 	}
 }
 
 int GameTable::Play(int firstPlayerID)
 {
-	
 	Player* player = _data->GetPlayerById(firstPlayerID);
 	
 	if (player->GetDeck()->GetDeckSize() == 0)
@@ -67,17 +66,17 @@ int GameTable::DoPlay(int firstPlayerID)
 {
 	Card biggestCard = _data->GetPlayerById(firstPlayerID)->TakeGameCard();
 	char suit = biggestCard.GetSuit();
-	std::map<int, Player*>* map = _data->PlayerMapById();
+	std::map<int, Player*> map = _data->PlayerMapById();
 	
-	std::map<int, Player*>::iterator winner = map->begin();
+	std::map<int, Player*>::iterator winner = map.begin();
 
-	for (auto i = map->begin(); i != map->end(); i++)
+	for (auto i = map.begin(); i != map.end(); i++)
 	{
-		if (i == map->find(firstPlayerID))
+		if (i == map.find(firstPlayerID))
 		{
 			continue;
 		}
-		Card playerCard = (*i).second->TakeGameCardBySuit(suit);
+		Card playerCard = i->second->TakeGameCardBySuit(suit);
 		if (playerCard.GetSuit() == suit && CompareCards(playerCard, biggestCard) > 0)
 		{
 			biggestCard = playerCard;
@@ -85,9 +84,8 @@ int GameTable::DoPlay(int firstPlayerID)
 		}
 	}
 	
-	std::map<int, std::set<int>>* wmap = _data->PlayerMapByWinnings();
-	(*wmap)[(*winner).second->GetWinnings()].erase((*winner).first);
-	(*winner).second->IncWinnings();
-	(*wmap)[(*winner).second->GetWinnings()].insert((*winner).first);
+	_data->PlayerMapByWinnings()[(*winner).second->GetWinnings()].erase(winner->first);
+	winner->second->IncWinnings();
+	_data->PlayerMapByWinnings()[(*winner).second->GetWinnings()].insert(winner->first);
 	return (*winner).first;
 }

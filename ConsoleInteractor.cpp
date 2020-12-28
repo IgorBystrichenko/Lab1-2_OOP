@@ -21,7 +21,7 @@ void ConsoleInteractor::Start()
 	GameTable gameTable = CreateGameTable();
 	PrintRules();
 
-	auto firstPlayer = gameTable.GetPlayersData()->PlayerMapById()->begin();
+	auto firstPlayer = gameTable.GetPlayersData()->PlayerMapById().begin();
 	while (true)
 	{
 		try
@@ -38,11 +38,10 @@ void ConsoleInteractor::Start()
 			case prating: PrintRating(gameTable); break;
 			case givecards: GivePlayersCards(gameTable); break;
 			case play: Play(gameTable, firstPlayer->first);
-				std::cout << firstPlayer->first << std::endl;
 				firstPlayer++; 
-				if (firstPlayer == gameTable.GetPlayersData()->PlayerMapById()->end())
+				if (firstPlayer == gameTable.GetPlayersData()->PlayerMapById().end())
 				{
-					firstPlayer = gameTable.GetPlayersData()->PlayerMapById()->begin();
+					firstPlayer = gameTable.GetPlayersData()->PlayerMapById().begin();
 				}
 				break;
 			default: throw std::logic_error("Illegal command input");
@@ -106,7 +105,7 @@ Deck* ConsoleInteractor::DeckParser()
 
 PlayersData* ConsoleInteractor::PlayersParser(int numberOfPlayers)
 {
-	std::map<int, Player*>* players = new std::map<int, Player*>();
+	std::map<int, Player*> players;
 	std::cout << "\nEnter players \"Name type\"" << std::endl;
 	std::cout << "The type of player determines his way of choosing the card to play\n"
 	"Types:\n"
@@ -127,7 +126,7 @@ PlayersData* ConsoleInteractor::PlayersParser(int numberOfPlayers)
 			name = ReadValue<std::string>(std::cin);
 			type = ReadValue<char>(std::cin);
 
-			players->insert(std::pair<int, Player*>(gen.NextId(), PlayerFactory::getPlayer(name, type)));
+			players.insert(std::pair<int, Player*>(gen.NextId(), PlayerFactory::getPlayer(name, type)));
 			i++;
 		}
 		catch (std::exception err)
@@ -172,8 +171,8 @@ void ConsoleInteractor::PrintCard(const Card& card)
 
 void ConsoleInteractor::PrintAllPlayerCards(const GameTable& gameTable)
 {
-	std::map<int, Player*>* map = gameTable.GetPlayersData()->PlayerMapById();
-	for(auto i = map->begin(); i != map->end(); i++)
+	std::map<int, Player*> map = gameTable.GetPlayersData()->PlayerMapById();
+	for(auto i = map.begin(); i != map.end(); i++)
 	{
 		std::cout << i->second->GetName() << ":" << std::endl;
 		for(int j = 0; j < i->second->GetDeck()->GetDeckSize(); j++)
@@ -185,8 +184,8 @@ void ConsoleInteractor::PrintAllPlayerCards(const GameTable& gameTable)
 
 void ConsoleInteractor::PrintRating(const GameTable& gameTable)
 {
-	std::map<int, std::set<int>>* wmap = gameTable.GetPlayersData()->PlayerMapByWinnings();
-	for (auto i = wmap->rbegin(); i != wmap->rend(); i++)
+	std::map<int, std::set<int>> wmap = gameTable.GetPlayersData()->PlayerMapByWinnings();
+	for (auto i = wmap.rbegin(); i != wmap.rend(); i++)
 	{
 		std::set<int> list = i->second;
 		for (auto j = list.begin(); j != list.end(); j++)
@@ -223,16 +222,16 @@ void ConsoleInteractor::Play(GameTable& gameTable, int playerIndex)
 	int winner = gameTable.Play(playerIndex);
 	std::cout << "Player " << data->GetPlayerById(playerIndex)->GetName() << " moves first." << std::endl;
 	std::cout << "Player moves:" << std::endl;
-	auto i = data->PlayerMapById()->find(playerIndex);
+	auto i = data->PlayerMapById().find(playerIndex);
 	
 	do
 	{
 		std::cout << i->second->GetName() << ": ";
 		PrintCard(i->second->GetDeck()->GetLastTakedCard());
 		i++;
-		if (i == data->PlayerMapById()->end())
+		if (i == data->PlayerMapById().end())
 		{
-			i = data->PlayerMapById()->begin();
+			i = data->PlayerMapById().begin();
 		}
 	}
 	while (i->first != playerIndex);
