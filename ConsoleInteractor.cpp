@@ -7,19 +7,21 @@
 #include "RandomCardPlayer.h"
 #include "SmallestCardPlayer.h"
 #include "PlayerFactory.h"
+#include "IdentifierGenerator.h"
+#include <map>
+#include <set>
 
+enum Comands
+{
+	rules, shuffle, pdeck, pplayercards, prating, givecards, play
+};
 
 void ConsoleInteractor::Start()
 {
 	GameTable gameTable = CreateGameTable();
-	std::cout <<
-	"\nCommands:\n"
-	"1 - Shuffle deck\n"
-	"2 - Print deck\n"
-	"3 - Print player cards\n"
-	"4 - Give players cards\n"
-	"5 - Play\n";
+	PrintRules();
 
+	auto firstPlayer = gameTable.GetPlayersData()->PlayerMapById()->begin();
 	while (true)
 	{
 		try
@@ -29,11 +31,20 @@ void ConsoleInteractor::Start()
 			
 			switch (temp)
 			{
-			case 1: gameTable.ShuffleDeck(); break;
-			case 2: PrintDeck(gameTable); break;
-			case 3: PrintAllPlayerCards(gameTable); break;
-			case 4: GivePlayersCards(gameTable); break;
-			case 5: Play(gameTable, _playerIndex); _playerIndex = (_playerIndex + 1) % gameTable.GetNumberOfPlayers(); break;
+			case rules: PrintRules(); break;
+			case shuffle: gameTable.ShuffleDeck(); break;
+			case pdeck: PrintDeck(gameTable); break;
+			case pplayercards: PrintAllPlayerCards(gameTable); break;
+			case prating: PrintRating(gameTable); break;
+			case givecards: GivePlayersCards(gameTable); break;
+			case play: Play(gameTable, firstPlayer->first);
+				std::cout << firstPlayer->first << std::endl;
+				firstPlayer++; 
+				if (firstPlayer == gameTable.GetPlayersData()->PlayerMapById()->end())
+				{
+					firstPlayer = gameTable.GetPlayersData()->PlayerMapById()->begin();
+				}
+				break;
 			default: throw std::logic_error("Illegal command input");
 			}
 			
@@ -49,7 +60,6 @@ void ConsoleInteractor::Start()
 GameTable ConsoleInteractor::CreateGameTable()
 {
 	Deck* deck = DeckParser();
-
 	int numberOfPlayers = -1;
 
 	while (numberOfPlayers <= 0)
@@ -69,8 +79,9 @@ GameTable ConsoleInteractor::CreateGameTable()
 		}
 	}
 	
-	Player** players = PlayersParser(numberOfPlayers);
-	return GameTable(players, numberOfPlayers, deck);
+	
+	PlayersData* data = PlayersParser(numberOfPlayers);
+	return GameTable(data, deck);
 }
 
 Deck* ConsoleInteractor::DeckParser()
@@ -93,10 +104,9 @@ Deck* ConsoleInteractor::DeckParser()
 	return deck;
 }
 
-Player** ConsoleInteractor::PlayersParser(int numberOfPlayers)
+PlayersData* ConsoleInteractor::PlayersParser(int numberOfPlayers)
 {
-	
-	Player** players = new Player * [numberOfPlayers];
+	std::map<int, Player*>* players = new std::map<int, Player*>();
 	std::cout << "\nEnter players \"Name type\"" << std::endl;
 	std::cout << "The type of player determines his way of choosing the card to play\n"
 	"Types:\n"
@@ -105,6 +115,7 @@ Player** ConsoleInteractor::PlayersParser(int numberOfPlayers)
 	"s - Smallest card\n";
 
 	int i = 0;
+	IdentifierGenerator gen;
 	while (i < numberOfPlayers)
 	{
 		std::string name;
@@ -115,7 +126,8 @@ Player** ConsoleInteractor::PlayersParser(int numberOfPlayers)
 		{
 			name = ReadValue<std::string>(std::cin);
 			type = ReadValue<char>(std::cin);
-			players[i] = PlayerFactory::getPlayer(name, type);
+
+			players->insert(std::pair<int, Player*>(gen.NextId(), PlayerFactory::getPlayer(name, type)));
 			i++;
 		}
 		catch (std::exception err)
@@ -123,7 +135,20 @@ Player** ConsoleInteractor::PlayersParser(int numberOfPlayers)
 			std::cout << err.what() << std::endl << std::endl;
 		}
 	}
-	return players;
+	return new PlayersData(players);
+}
+
+void ConsoleInteractor::PrintRules()
+{
+	std::cout <<
+		"\nCommands:\n" <<
+		rules << " - Print rules\n" <<
+		shuffle << " - Shuffle deck\n" <<
+		pdeck << " - Print deck\n" <<
+		pplayercards << " - Print player cards\n" <<
+		prating << " - Print leaderboard\n" <<
+		givecards << " - Give player cards\n" <<
+		play << " - Play\n";
 }
 
 void ConsoleInteractor::PrintCard(const Card& card)
@@ -147,12 +172,26 @@ void ConsoleInteractor::PrintCard(const Card& card)
 
 void ConsoleInteractor::PrintAllPlayerCards(const GameTable& gameTable)
 {
-	for(int i = 0; i < gameTable.GetNumberOfPlayers(); i++)
+	std::map<int, Player*>* map = gameTable.GetPlayersData()->PlayerMapById();
+	for(auto i = map->begin(); i != map->end(); i++)
 	{
-		std::cout << gameTable.GetPlayer(i)->GetName() << ":" << std::endl;
-		for(int j = 0; j < gameTable.GetPlayer(i)->GetDeck()->GetDeckSize(); j++)
+		std::cout << i->second->GetName() << ":" << std::endl;
+		for(int j = 0; j < i->second->GetDeck()->GetDeckSize(); j++)
 		{
-			PrintCard(gameTable.GetPlayer(i)->GetDeck()->GetCard(j));
+			PrintCard(i->second->GetDeck()->GetCard(j));
+		}
+	}
+}
+
+void ConsoleInteractor::PrintRating(const GameTable& gameTable)
+{
+	std::map<int, std::set<int>>* wmap = gameTable.GetPlayersData()->PlayerMapByWinnings();
+	for (auto i = wmap->rbegin(); i != wmap->rend(); i++)
+	{
+		std::set<int> list = i->second;
+		for (auto j = list.begin(); j != list.end(); j++)
+		{
+			std::cout << gameTable.GetPlayersData()->GetPlayerById(*j)->GetName() << ":" << i->first << std::endl;
 		}
 	}
 }
@@ -180,20 +219,25 @@ void ConsoleInteractor::GivePlayersCards(GameTable& gameTable)
 
 void ConsoleInteractor::Play(GameTable& gameTable, int playerIndex)
 {
+	PlayersData* data = gameTable.GetPlayersData();
 	int winner = gameTable.Play(playerIndex);
-	std::cout << "Player " << gameTable.GetPlayer(playerIndex)->GetName() << " moves first." << std::endl;
+	std::cout << "Player " << data->GetPlayerById(playerIndex)->GetName() << " moves first." << std::endl;
 	std::cout << "Player moves:" << std::endl;
-	int i = playerIndex;
+	auto i = data->PlayerMapById()->find(playerIndex);
 	
 	do
 	{
-		std::cout << gameTable.GetPlayer(i)->GetName() << ": ";
-		PrintCard(gameTable.GetPlayer(i)->GetDeck()->GetLastTakedCard());
-		i = (i + 1) % gameTable.GetNumberOfPlayers();
+		std::cout << i->second->GetName() << ": ";
+		PrintCard(i->second->GetDeck()->GetLastTakedCard());
+		i++;
+		if (i == data->PlayerMapById()->end())
+		{
+			i = data->PlayerMapById()->begin();
+		}
 	}
-	while (i != playerIndex);
+	while (i->first != playerIndex);
 	
-	std::cout << "Winner: " << gameTable.GetPlayer(winner)->GetName() << std::endl;
+	std::cout << "Winner: " << data->GetPlayerById(winner)->GetName() << std::endl;
 }
 
 template <typename T>

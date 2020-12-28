@@ -1,6 +1,5 @@
 #pragma once
 #include "Card.h"
-#include "Player.h"
 #include "GameTable.h"
 
 class ConsoleInteractor
@@ -8,13 +7,14 @@ class ConsoleInteractor
 public:
 	void Start();
 private:
-	int _playerIndex = 0;
 	static GameTable CreateGameTable();
 	static Deck* DeckParser();
-	static Player** PlayersParser(int numberOfPlayers);
+	static PlayersData* PlayersParser(int numberOfPlayers);
 	
+	static void PrintRules();
 	static void PrintCard(const Card& card);
 	static void PrintAllPlayerCards(const GameTable& gameTable);
+	static void PrintRating(const GameTable& gameTable);
 	static void PrintDeck(const GameTable& gameTable);
 	
 	static void GivePlayersCards(GameTable& gameTable);

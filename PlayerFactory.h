@@ -2,6 +2,7 @@
 #include "RandomCardPlayer.h"
 #include "SmallestCardPlayer.h"
 #include "BiggestCardPlayer.h"
+#include <stdexcept>
 
 class PlayerFactory
 {

@@ -1,15 +1,15 @@
 #include "GameTable.h"
 #include "DeckLoader.h"
 #include "RandomGenerator.h"
+#include <map>
+#include <set>
+#include <stdexcept>
+#include <iostream>
 
 GameTable::~GameTable()
 {
 	delete _deck;
-	for (int i = 0; i < _numberOfPlayers; i++)
-	{
-		delete _players[i];
-	}
-	delete[] _players;
+	delete _data;
 }
 
 void GameTable::ShuffleDeck()
@@ -34,46 +34,60 @@ int GameTable::CompareCards(const Card& card1, const Card& card2)
 
 void GameTable::GiveCards(int number)
 {
-	if (number < 0 || number > _deck->GetDeckSize() / _numberOfPlayers)
+	if (number < 0 || number > _deck->GetDeckSize() / _data->GetNumberOfPlayers())
 	{
 		throw std::exception("Wrong number of cards!");
 	}
-	for (int i = 0; i < number * _numberOfPlayers; i++)
+	std::map<int, Player*>* map = _data->PlayerMapById();
+	for (auto i = map->begin(); i != map->end(); i++)
 	{
-		_players[i / number]->AddCard(_deck->TakeCard(0));
+		for (int j = 0; j < number; j++)
+		{
+			(*i).second->AddCard(_deck->TakeCard(0));
+		}
 	}
 }
 
-int GameTable::Play(int playerIndex)
+int GameTable::Play(int firstPlayerID)
 {
-	if (_players[0]->GetDeck()->GetDeckSize() == 0)
+	
+	Player* player = _data->GetPlayerById(firstPlayerID);
+	
+	if (player->GetDeck()->GetDeckSize() == 0)
 	{
 		throw std::logic_error("Players don't have cards");
 	}
 	else
 	{
-		return DoPlay(playerIndex);
+		return DoPlay(firstPlayerID);
 	}
 }
 
-int GameTable::DoPlay(int firstPlayer)
+int GameTable::DoPlay(int firstPlayerID)
 {
-	Card biggestCard = _players[firstPlayer]->TakeGameCard();
+	Card biggestCard = _data->GetPlayerById(firstPlayerID)->TakeGameCard();
 	char suit = biggestCard.GetSuit();
-	int winnerIndex = firstPlayer;
+	std::map<int, Player*>* map = _data->PlayerMapById();
+	
+	std::map<int, Player*>::iterator winner = map->begin();
 
-	for (int i = 0; i < _numberOfPlayers; i++)
+	for (auto i = map->begin(); i != map->end(); i++)
 	{
-		if (i == firstPlayer)
+		if (i == map->find(firstPlayerID))
 		{
 			continue;
 		}
-		Card playerCard = _players[i]->TakeGameCardBySuit(suit);
+		Card playerCard = (*i).second->TakeGameCardBySuit(suit);
 		if (playerCard.GetSuit() == suit && CompareCards(playerCard, biggestCard) > 0)
 		{
 			biggestCard = playerCard;
-			winnerIndex = i;
+			winner = i;
 		}
 	}
-	return winnerIndex;
+	
+	std::map<int, std::set<int>>* wmap = _data->PlayerMapByWinnings();
+	(*wmap)[(*winner).second->GetWinnings()].erase((*winner).first);
+	(*winner).second->IncWinnings();
+	(*wmap)[(*winner).second->GetWinnings()].insert((*winner).first);
+	return (*winner).first;
 }

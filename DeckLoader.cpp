@@ -23,7 +23,6 @@ Deck* DeckLoader::LoadFromFile(const std::string& file)
 				deck->AddCard(temp);
 			}
 		}
-		
 	}
 	else
 	{
@@ -70,6 +69,5 @@ Card DeckLoader::CardParser(const std::string& rank, const std::string& suit)
 		throw std::runtime_error("Card parser exception");
 		
 	}
-	
 	return Card(cardRank, cardSuit);
 }

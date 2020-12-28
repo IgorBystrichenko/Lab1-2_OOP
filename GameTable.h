@@ -1,30 +1,27 @@
 #pragma once
 #include "Deck.h"
 #include "Player.h"
+#include "PlayersData.h"
 
 class GameTable
 {
-
 public:
 	
-	GameTable(Player** players, int numberOfPlayers, Deck* deck) : _players(players), _numberOfPlayers(numberOfPlayers), _deck(deck) {}
+	GameTable(PlayersData* data, Deck* deck) : _data(data), _deck(deck) {};
 	~GameTable();
 	
 	void ShuffleDeck();
 	static int CompareCards(const Card& card1, const Card& card2);
 	static int CompareCardRanks(const Card& card1, const Card& card2) { return card1.GetRank() - card2.GetRank(); };
 	void GiveCards(int number);
-	int Play(int playerIndex);
-
+	int Play(int firstPlayerID);
+	int GetNumberOfPlayers() const { return _data->GetNumberOfPlayers(); }
+	PlayersData* GetPlayersData() const { return  _data; }
 	Deck* GetDeck() const { return _deck; }
-	Player* GetPlayer(int index) const { return _players[index]; }
-	int GetNumberOfPlayers() const { return _numberOfPlayers; }
 	
 private:
+	PlayersData* _data;
 	Deck* _deck;
-	Player** _players;
-	int _numberOfPlayers;
 	
-	int DoPlay(int firstPlayer);
-	
+	int DoPlay(int firstPlayerID);
 };
